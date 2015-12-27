@@ -1,0 +1,29 @@
+package org.fun4j;
+
+public class Version {
+    
+    /** 
+     * this field holds the major release number.
+     */
+    private static String RELEASE = "@RELEASE@";
+    
+    /**
+     * this field holds the revision number.
+     */
+    private static String REVISION = "@REVISION@";
+    
+    /**
+     * returns the short version String: @RELEASE@
+     */
+    public static String getVersion() {
+        return RELEASE;
+    }
+    
+    /**
+     * returns the long version String: @RELEASE@.@REVISION@
+     */
+    public static String getVersionLong() {
+        return RELEASE + "." + REVISION;
+    }
+
+}

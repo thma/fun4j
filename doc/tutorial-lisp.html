@@ -1,0 +1,205 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<a href="index.html" style=""><img src="lambda-100.png" border="0"/></a>
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+ - <a href="tutorial-api.html">Java API</a>
+</p>
+<p>
+ - <a href="tutorial-java-lisp.html">Java + LISP</a>
+</p>
+<p>
+ - Lisp Repl
+</p>
+<p>
+ - <a href="tutorial-assembler.html">Assembler</a>
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+<a href="lisp-doc.html">Lisp manual</a>
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+
+
+<h2>The Lisp Read Eval Print Loop</h2>
+<p>
+The most simple way to interact with a Lisp system is through an interactive
+Read-Eval-Print Loop. Fun4J also comes with such a "REPL".
+</p>
+<p>
+To start up the fun4j REPL just 
+call <code>java -jar fun4j.jar</code>. 
+If you are working in an IDE you could as well start up the class <code>org.fun4j.Repl</code> directly.
+</p>
+<p>
+After starting up you are prompted with the follwoing welcom message:
+</p>
+<pre>
+Welcome to fun4j [1.0.x]
+input: 
+</pre>
+<p>
+You can enter any lisp expression at the input prompt. See the next snippet for an example:
+</p>
+<pre>
+input: (+ 3 4)
+elapsed time in msecs:0
+value1: 7
+</pre>
+<p>
+The result of the computation is printed after a <code>value&lt;n&gt;:</code> label.
+The result of the computation is also bound to a global variable <code>value&lt;n&gt;</code>.
+So you can reuse the results of previous computations in new lisp expressions. See the following snippet for a simple example:
+</p>
+<pre>
+input: (* value1 10)
+elapsed time in msecs:0
+value2: 70 
+</pre>
+<p>
+Please have a look at the following interactive session: 
+</p>
+<pre>
+input: (lambda (m n) (* m n))
+elapsed time in msecs:15
+value1: Example1(args) => args[0]*args[1][]
+input: (value1 7)
+elapsed time in msecs:0
+value2: Example1(args) => args[0]*args[1][7]
+input: (value2 6)
+elapsed time in msecs:0
+value3: 42
+</pre> 
+<p>
+A lambda term <code>(lambda (m n) (* m n))</code> is entered.
+The result of this expression is a compiled function.
+Each compiled functions maintains a string representation of its underlying AST which can be used 
+for a human readable representation. This representation is printed out: <code>value1: Example1(args) => args[0]*args[1][]</code>
+</p>
+<p>
+In the next line this function object is applied to the argument 7.
+As the original function has two arguments this function application is only a partial one, as one argument remains unbound.
+Thus the result of this application is a closure of the original function and the single argument 7:
+<code>value2: Example1(args) => args[0]*args[1][7]</code>
+</p>
+<p>
+This closure is again a function, now one with only one unbound variable. Thus a call to the single argument 6 <code>(value2 6)</code> results
+in a  multiplication of the bound arguments 6 and 7.
+</p>
+<h2>Useful functions</h2>
+<p>
+Enter <code>(tracing true)</code> to enable tracing of function calls.
+<code>(tracing false)</code> deactivates tracing.
+Here is a short example of tracing the factorial function: 
+</p>
+<pre>
+input: (tracing true)
+<-Example1: true
+elapsed time in msecs:0
+value1: true
+input: (fac 5)
+->Example2()
+ ->fac2(5)
+  ->fac2(4)
+   ->fac2(3)
+    ->fac2(2)
+     ->fac2(1)
+      ->fac2(0)
+      <-fac2: 1
+     <-fac2: 1
+    <-fac2: 2
+   <-fac2: 6
+  <-fac2: 24
+ <-fac2: 120
+<-Example2: 120
+elapsed time in msecs:0
+value2: 120
+</pre>
+<p>
+By default fun4j uses BigIntegers for all int arithmetic operations.
+If you want to change this you can call <code>(bigints false)</code>.
+It is important to note that this flag affects the Lisp parser and the Lisp compiler.
+If you change this flag in the middle of a session the Parser will generate Integer object while the
+compiled code still expects BigIntegers and vice versa.
+To avoid problems with this flag better use it before doing any compilations.
+Or reload all definitions like in the following example session:
+</p>
+<pre>
+input: (fac 32)
+elapsed time in msecs:0
+value1: 263130836933693530167218012160000000
+input: (bigints false)
+elapsed time in msecs:0
+value2: true
+input: (fac 32)
+java.lang.Integer cannot be cast to java.math.BigInteger
+java.lang.ClassCastException: java.lang.Integer cannot be cast to java.math.BigInteger
+	at fac1.apply(Unknown Source)
+	at Example3.apply(Unknown Source)
+	at org.fun4j.Repl.mainLoop(Repl.java:64)
+	at org.fun4j.Repl.main(Repl.java:31)
+input: (load 'lisp/init.lsp)
+elapsed time in msecs:109
+value4: true
+input: (fac 32)
+elapsed time in msecs:0
+value5: -2147483648
+input: 
+</pre>
+
+<p>
+In order to allow debugging and better understanding of the internal code generation you can
+call:
+</p>
+<pre>
+(debug-enable true)
+</pre>
+<p>
+Enabling this flag will advice the compiler to write .lsp files for AST-Pseudocode and .class files
+for the generated Java bytecode. It will also trigger the generation of JVM debugging bytecode.
+</p>
+<p>
+You can use the functions <code>(printlength n)</code> and <code>(printdepth n)</code>, <code>n</code> being an Integer value,
+to control the printing of lists. This feature is useful to avoid problems with huge or recursive lists.
+</p>
+<pre>
+input: (printlength 5)
+elapsed time in msecs:0
+value5: 10
+input: (list 1 2 3 4 5 6 7 8 9)
+elapsed time in msecs:0
+value6: (1 2 3 4 5 6 ***)
+</pre>
+
+<p>
+Enter <code>(quit)</code> to terminate your interactive session.
+</p>
+<pre>
+input: (quit)
+good bye...
+</pre>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+todos
+
+- LETREC mit TCO
+- Inline Apply (already works for non-recursive functions)
+- eval / apply interpreter in fun4j lisp
+
+- ASM codegeneration with line number and source information
+- use Expression.toJavaString to generate Java Code for Expression AST
+- generate code for lisp functions as inner classes
+
+- provide compatibilty to Scheme R6RS
+- provide 
+
+- new primitives: error, catch
+- extend Template:
+  
+  - feature examples from functionaljava in fun4j lingo (as testcase + new tutorial)
+    (testcases done tutorial still needs to be written
+
+
+- do arity check of expression before applications
+- unit tests, 100% eclemma Coverage
+
+- lazy eval / combinators (Lazy eval already implemented)

@@ -1,0 +1,250 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<a href="index.html" style=""><img src="lambda-100.png" border="0"/></a>
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+ - <a href="tutorial-api.html">Java API</a>
+</p>
+<p>
+ - Java + LISP
+</p>
+<p>
+ - <a href="tutorial-lisp.html">Lisp Repl</a>
+</p>
+<p>
+ - <a href="tutorial-assembler.html">Assembler</a>
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+<a href="lisp-doc.html">Lisp manual</a>
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+
+
+<h2>Looking for a better notation for functions</h2>
+<p>
+As we have seen in the <a href="tutorial-api.html">tutorial on the fun4j Java API</a> Java has no native support for defining functions.
+Defining functions as anonymous classes is currently the most advanced thing Java has to offer here.
+But this solution is not always easy to read and involves a lot of boilerplate coding.
+In particular for simple functions the boilerplate overhead is quite high and takes out most of the fun.
+</p>
+<p>
+The fun4j way of defining functions in a concise way is to use lambda-terms in classic LISP syntax. 
+Just compare the following definitions:
+</p>
+<pre>
+// the Java way to define a function
+Function pow2 = new Function(){
+    @Override
+    public Object apply(Object... args) {
+        return (Integer)args[0] * (Integer)args[0];
+    }
+};
+</pre>
+<p>
+This is the typical Functions as anonymous class approach, that we used through the <a href="tutorial-api.html">Java API tutorial</a>.
+</p>
+<pre>
+Function pow2 = fn("(lambda (n) (* n n))");
+</pre>
+<p>
+This is the fun4j way. If you know LISP or Scheme or some other functional language this definition does not need much explanation.
+But if you don't, you'll learn it quickly. 
+</p>
+<h2>LISP ? Yes, LISP !</h2>
+<p style="font-style: italic;">
+"Lisp's core occupies some kind of local optimum 
+<br>in the space of programming languages."
+<br>- John McCarthy, inventor of LISP
+</p>
+<p>
+There are a few reasons why I choose LISP: 
+<ul>
+<li>
+Writing a basic Lisp Parser is easy, as LISP syntax is a 1:1 match to it's AST.
+</li>
+<li>
+Writing a basic Lisp Interpreter and Compiler is also quite straightforward. 
+</li>
+<li>
+As syntax and semantics can be defined with just a few statements LISP code 
+can be understood quite well once you got accustomed to all the parentheses and the prefix notation.
+</li>
+</ul>
+</p>
+<p>
+For an introduction to lambda-calculus and LISP please refer to the following links:
+<a href="http://en.wikipedia.org/wiki/Lisp_%28programming_language%29">LISP article on Wikipedia</a><br>
+<a href="http://en.wikipedia.org/wiki/Lambda_calculus">Lambda calculus</a>
+</p>
+<h2>Some more examples</h2>
+<p>
+The next code snippet shows a new application for <code>foldright</code>:
+here fold right is used to compute the product of the integers from 1 to 10.
+The result of this computation is crosschecked against a computation of <code>factorial(10)</code>,
+which is again the product from 1 to 10:
+</p>
+<pre>
+import static org.fun4j.Template.fun4j;
+import static org.fun4j.Template.fn;
+ 
+Collection&lt;Integer&gt; col = fun4j.asCollection(1 , 2, 3, 4, 5, 6, 7, 8, 9, 10);
+Function mul = fn("(lambda (x y) (* x y))");
+
+// define factorial function
+fun4j.eval("(define fac (lambda (n) (if (= n 0) 1 (* n (fac (sub1 n))))))");
+
+actual = (Integer) fun4j.foldright(mul, 1, col));
+Integer expected = (Integer) fun4j.eval("(fac 10)");
+
+assertEquals(expected, actual);     
+</pre>
+<p>
+In this example all functions are defined in lisp syntax.
+<code>mul</code> is assigned with an anonymous function.
+<code>fac</code> is defined (with the special <code>define</code>) as a named function in the fun4j runtime environment.
+Thus it can be accessed later in the call to <code>fun4j.eval("(fac 10)");</code>
+</p>
+<p>
+The interesting story here is that the Lisp expression are internally compiled into standard Java classes implementing the <code>org.fun4j.Function</code> Interface.
+That is the structure of Lisp function calls has been mapped to the Java Object + method calls as provided by the JVM.
+Thus the Lisp definitions are completely interoperable with ordinary Java code. This makes it easy to integrate Lisp code with existing Java code.
+You'll find a lot of other examples of how Lisp functions are used in Java Code in the fun4j junit testcases.
+</p>
+
+<h2>But how does it work ?</h2>
+<p>
+The compiler wraps a Function object only around the outmost Lisp expression. 
+Thus it's possible to write fairly complex LISP code that runs within one Java method without wasting stack space for allocating objects. 
+The compiler also provides a simple Tail Call Optimization that eliminates recursive method invocations wherever possible.
+If you want to know how this works, have a look at the source-code of the method <code>org.fun4j.compiler.Compiler.compile(...)</code>
+</p>
+
+<p>
+If you want to learn about the inner workings of fun4j have a look the <a href="tutorial-assembler.html">tutorial on the functional assembler</a> which forms the base of fun4j.
+</p>
+
+<h2>Don't call us, we'll call you !</h2>
+<p>
+Due to this direct interoperability of Java and Lisp code in fun4j 
+it is not only possible to evaluate Lisp code from within your Java applications
+but also to call Java from Lisp code.
+In the following example a Lisp function is defined based on a Java defined <code>Function</code> class.
+</p>
+<pre>
+fun4j.eval("(define hash (javafunction 'org.fun4j.functions.Hash))");
+System.out.println(fun4j.eval("(hash 'just-a-symbol)"));
+</pre>
+<p>
+You can also call static methods from Lisp code, as shown in the next snippet:
+</p>
+<pre>
+fun4j.eval("(define getproperties (lambda () (staticfunction 'java.lang.System 'getProperties "()Ljava/util/Properties;" )))");  
+System.out.println(fun4j.eval("(getproperties )"));
+</pre>
+<p>
+It's also possible to access Java methods dynamically from fun4j Lisp code with the Dot operator:
+</p>
+<pre>
+System.out.println(fun4j.eval("(. 'System 'getProperties)"));
+</pre>
+
+<h2>Accessing Java Objects with the Dot operator</h2>
+<p>
+As shown in the previous example the Dot operator allow to call static methods of any Java class. 
+But it can do much more, as shown in the following pseudo code:
+</p>
+<pre>
+(. Classname-symbol member-symbol)
+(. Classname-symbol method-symbol args*)
+
+(. instance-expr member-symbol)
+(. instance-expr method-symbol args*)
+</pre>
+
+<p>
+The Dot ('.') operator is a generic access operator to Java objects and classes.
+It can access both methods and fields.
+</p>
+<p>
+If the first operand is a symbol that resolves to a class name, the 
+access is considered to be to a static member of the named class. 
+
+Otherwise it is assumed to be an instance member and the first 
+argument is evaluated to produce the target object. 
+</p>
+<p>
+If the second operand is a symbol and no arguments are supplied it is taken 
+to be a field access: the name of the field is the name of the symbol, 
+and the value of the expression is the value of the field, unless there 
+is a no argument public method of the same name, in which case it 
+resolves to a call to the method. 
+</p>
+
+<p>
+Here are some examples:
+</p>
+<pre>
+System.out.println(fun4j.eval("(. 'Math 'PI)"));       
+System.out.println(fun4j.eval("(. 'Math 'random )")); 
+System.out.println(fun4j.eval("(. [1 2 3 4] 'size)"));        
+</pre>
+
+<p>
+The first line accesses the static field <code>PI</code> of the class <code>java.lang.Math</code>.
+The second line calls the static method <code>random()</code> of class <code>java.lang.Math</code>.
+The third line parses a Vector <code>[1, 2, 3, 4]</code> and calls the <code>size</code> method.
+</p>
+
+<p>
+An here are some more advanced examples from the testsuite:
+</p>
+<pre>
+Box box0 = new Box(0.0,0.0,10.0,10.0);
+fun4j.eval("(. box0 'contains 5.0 6.0)"));
+</pre>
+<p>
+A <code>Box</code> instance <code>box0</code> is created. The <code>Dot</code> operator is then called to invoke the 
+method <code>contains</code> with two arguments.
+</p>
+
+<pre>
+Box box1 = new Box(0.0,0.0,5.0,5.0);
+Box box2 = new Box(0.0,0.0,9.0,9.0);
+Collection &lt;Box&gt; col = fun4j.asCollection(box0, box1, box2);
+Function getSize = fn("(lambda (box) (. box 'getSize))");
+Collection&lt;?&gt; result = fun4j.map(getSize, col);
+</pre>
+<p>
+And in this snippet two more boxes are created and a collection <code>col</code> is built containing the
+the box instances.
+Next a function <code>getSize</code> is defined that takes a <code>Box</code> instance as input parameter
+and return the the result of invoking the <code>Box.getSize()</code> method on the instance.
+Finally <code>fun4j.map</code> is used to compute the size of all boxes and return them as a collection.
+</p>
+
+
+</div>
+</body>
+</html>

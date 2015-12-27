@@ -1,0 +1,195 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<a href="index.html" style=""><img src="lambda-100.png" border="0"/></a>
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+ - <a href="tutorial-api.html">Java API</a>
+</p>
+<p>
+ - <a href="tutorial-java-lisp.html">Java + LISP</a>
+</p>
+<p>
+ - <a href="tutorial-lisp.html">Lisp Repl</a>
+</p>
+<p>
+ - Assembler
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+<a href="lisp-doc.html">Lisp manual</a>
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+
+
+<h2>The functional assembler</h2>
+<p>
+The lowest level API that fun4j provides is the functional assembler.
+This assembler allows to build up AST representations of functions and compile them to Java bytecode, 
+implementing the <code>org.fun4j.Function</code> interface.
+I'll just cover the most basic stuff here, as most users will prefer to use the highlevel APIs.
+</p>
+<h3>Assembling simple non-recursive functions</h3>
+<p>
+Let's assume we want to write a Function that computes the powers of two of its input, that is <code>f(x) => x*x</code>.
+We will have to define a function Expression that performs an integer multiplication, taking the single variable x as both its arguments.
+The AST expression for looking up the first local variable of a function invocation is <code>new Var(0)</code>.
+The AST expression for multiply is <code>new Mul(exp1, exp2)</code>. Thus the Expression representing <code>f(x) = x*x</code> becomes:
+<code>new Mul(new Var(0), new Var(0))</code>.
+</p>
+
+<pre>
+// org.fun4j.Template is the central facade to the fun4J API. 
+// A default instance can be obtained by a static import:
+import static org.fun4j.Template.fun4j;
+
+// f(x) => x*x
+Expression expPower = new Mul(new Var(0), new Var(0));
+</pre>
+
+<p>
+This expression can then be compiled to a Function object and applied to an Integer to compute, say, powers of two of seven:
+</p>
+
+<pre>
+Function power = fun4j.compile(expPower, "power");
+
+System.out.println(power.apply(7));
+</pre>
+
+<p>
+Here comes another simple example where we write a function that adds two values (<code>f(x,y) = x + y</code>).
+</p>
+<pre>
+Expression expAdd = new Add(new Var(0), new Var(1));
+Function add = fun4j.compile(expAdd, "add");
+
+System.out.println(power.apply(add.apply(3, 4)));
+</pre>
+
+<h3>Assembling recursive functions</h3>
+<p>
+That looks quite simple so far, didn't it? Now we want to see how recursive function can be implemented.
+So let's start with the 'Hello World' of recursion: the notorious factorial function:
+</p>
+<pre>
+factorial(0) = 1
+factorial(n) = n * factorial(n - 1)
+</pre>
+<p>
+As an AST expression we can define this as follows:
+</p>
+<pre>
+Expression expFac = new If(new NumEq(new CstInt(0), new Var(0)), 
+                           new CstInt(1), 
+                           new Mul(new Var(0), new Recurse(new Sub1(new Var(0)))));
+						
+Function fac = fun4j.compile(expFac, "fac");
+System.out.println(fac.apply(5))						
+</pre>
+  
+<h3>Assembling higher order functions</h3>
+<p>
+In this section we will have a look at higher-order functions. 
+As an example we take Summing from 0 to <code>n</code> over a function <code>fun</code>:
+</p>
+<pre>
+sum(0, fun) = fun(0)
+sum(n, fun) = fun(n) + sum(n-1, fun)
+</pre>
+<p>
+This can be defined as an AST Expression as follows:
+</p>
+<pre>
+Expression expSum = new If(new NumEq(new Var(0), new CstInt(0)), 
+                           new Apply(new Var(1), new Var(0)), 
+                           new Add(new Apply(new Var(1), new Var(0)), 
+                                   new Recurse(new Sub1(new Var(0)), new Var(1))));
+Function sum = fun4j.compile(sum, "sum");
+
+// id: f(x) => x
+Function id = fun4j.compile(new Var(0), "id");
+
+// testing higher order functions, computing sum(x) and sum(x*x)
+System.out.println(sum.apply(100, id));
+System.out.println(sum.apply(100, power));
+</pre>
+
+<h3>Tailcall optimization (TCO)</h3>
+<p> Fun4j comes with support for optimization of tail recursive functions. 
+The compiler traverses AST graphs and looks for <code>Recurse</code> expressions in tail-position.
+If such an expression is found it is marked and instead of bytecode for a full recursive function call (including allocation of a new stack-frame) 
+bytecode is emitted that manipulates the current stack frame to contain the values for the next "recursive" call and executes the body of the function again. 
+If you want to see how this works in detail have a look at <code>org.fun4j.compiler.expressions.Recurse.compile(MethodVisitor mv)</code>.
+</p>
+<p>
+Now let's see how this works for a simple tail-recursive function that counts down from n to zero:
+</p>
+<pre>
+countdown(0) = 0
+countdown(n) = countdown(n-1)
+</pre>
+<p>
+This function can be written as an AST Expression as follows:
+</p>
+
+<pre>
+Expression expCount = new If(new NumEq(new CstInt(0), new Var(0, "n")), 
+                             new CstInt(0),
+                             new Recurse(new Sub1(new Var(0, "n"))));
+</pre>
+<p>
+On compilation the compiler will detect that the Recurse expression is in a tail position.
+(Compare this to the Recurse expressions in <code>expSum</code> and <code>expFac</code> that are not in tail positions but nested into <code>Add</code> and <code>Mul</code> expressions.)
+
+Now let's see if it really works:
+</p>
+<pre>
+Function count = fun4j.compile(expCount, "count");
+// this would cause a stack overflow without tail call optimization:
+count.apply(1000000);
+</pre>
+<p>
+These are the basics about the AST assembler. 
+As we have seen, this Assembler can be used to compile functional expressions into efficient Java bytecode.
+</p>
+<h3>Roll your own...</h3>
+<p>
+The fun4j Lisp compiler pre-compiles lambda-terms into AST Expressions and gets them compiled into Java Bytecode 
+in the way we have studied in the previous examples. 
+Have a closer look at <code>org.fun4j.compiler.Parser</code> and <code>org.fun4j.compiler.Compiler</code> 
+to see how straight-forward this works. 
+</p>
+<p>
+So in order to build an implementation for your functional language of choice just
+add a Parser and you have a fully operational
+implementation with garbage collection and tail code optimization for free.  
+</p>
+<p>
+I'm happy that you did not quit reading somewhere en route but have studied all these rather dry examples with so much patience.
+Thanks a lot for your interest! If you have further questions or suggestions don't hesitate to contact me.
+</p>
+
+</div>
+</body>
+</html>

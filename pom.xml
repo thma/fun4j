@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.maventest</groupId>
+	<artifactId>fun4j</artifactId>
+	<packaging>jar</packaging>
+	<version>2.0</version>
+	<name>fun4j</name>
+	<url>http://www.fun4j.org</url>
+	<dependencies>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib-nodep</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-tree</artifactId>
+			<version>4.0</version>
+		</dependency>
+	</dependencies>
+	<build>
+
+
+		<sourceDirectory>${basedir}/src</sourceDirectory>
+		<testSourceDirectory>${basedir}/test</testSourceDirectory>
+		<outputDirectory>${basedir}/target/classes</outputDirectory>
+		<testOutputDirectory>${basedir}/target/test-classes</testOutputDirectory>
+
+
+		<extensions>
+		</extensions>
+	</build>
+
+	<organization>
+		<url>http://www.fun4j.org</url>
+	</organization>
+</project>

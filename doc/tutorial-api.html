@@ -1,0 +1,498 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<a href="index.html" style=""><img src="lambda-100.png" border="0"/></a>
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+ - Java API
+</p>
+<p>
+ - <a href="tutorial-java-lisp.html">Java + LISP</a>
+</p>
+<p>
+ - <a href="tutorial-lisp.html">Lisp Repl</a>
+</p>
+<p>
+ - <a href="tutorial-assembler.html">Assembler</a>
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+<a href="lisp-doc.html">Lisp manual</a>
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+
+<h2>The central idea: functions as first class citizens</h2>
+<p>
+fun4j builds upon one central concept: functions as first class citizens.
+As the Java programming language does not have native support for functional
+programming we have to emulate it using object-oriented techniques: 
+We need a Function object that allows to deal with functional abstractions. 
+The base idea of a function is that it is a mapping that is applied to 0..n input arguments to result in one output value.
+
+This notion is expressed in the following definition of the Function interface:
+</p>
+<pre>
+package org.fun4j;
+
+public interface Function {
+
+    /**
+     * Apply this function to the given arguments.
+     * 
+     * @param args the arguments passed to the function call
+     * @return the result of applying the function to its arguments
+     * 
+     */
+    Object apply(Object... args);
+        
+}
+</pre>  
+<p>
+Function objects implementing this interface can be passed as ordinary Object instances within Java code.
+So it's quite straightforward to use typical patterns of functional programming like the usage of higher-order functions 
+to define transformations on Collections. I'll come back to this interesting topic shortly.
+</p>
+
+<p>
+To create such a Function object in your Java code you can define it as an instances of anonymous classes like in the following code:
+</p>
+<pre>
+Function add = new Function(){
+    @Override
+    public Object apply(Object... args) {
+        return (Integer) args[0] + (Integer) args[1];
+    }    
+};       
+</pre>
+<p>
+This new Function object can now be invoked by calling its apply Method, here we using it to calculate 17 + 6:
+</p>
+<p>
+<pre>
+System.out.println(add.apply(17,6));
+</pre>
+</p>
+<p>
+Of course Functions can also defined as ordinary named classes like in the following definition:
+</p>
+<pre>
+public class Hash implements Function {
+     
+    @Override
+    public Object apply(Object... args) {
+        return new Integer(args[0].hashCode());
+    }  
+}
+</pre>
+<p>
+This Function can then be used as follows:
+</p>
+<pre>
+Function hash = new Hash();
+System.out.println(hash.apply("hello world"));
+</pre>
+<p>
+Both ways of creating functions as classes or as anonymous inner classes
+contain a lot of boilerplate coding even for simple function definitions.
+To ease the construction of function instances fun4j provides three alternative approaches.
+</p>
+<h3>use Java methods as functions</h3>
+<p>
+fun4j provides a way to create a Function instance from any Java Method.
+In the following code snippet you see how <code>org.fun4j.Functions.functionFromMethod</code> is used
+to create a <code>sin</code> function from the static method <code>Math.sin</code>.
+<pre>
+import static org.fun4j.Functions.functionFromMethod;
+
+Function sin = functionFromMethod(Math.class.getMethod("sin", double.class));
+System.out.println(sin.apply(Math.PI/2.0));
+</pre>
+<p>
+In the following example the zero-argument instance method <code>getSize()</code> is used to create the function
+<code>size</code>.
+Calling <code>size.apply(box)</code> invokes the method call <code>box.getSize()</code>.
+Next the instance method <code>contains(double x, double y)</code> 
+is used to construct the function <code>contains</code>.
+Calling <code>contains.apply(box, 40.0, 40.0)</code> invokes the mothd call 
+<code>box.contains(40.0, 40.0)</code>
+</p>
+<pre>
+Box box = new Box(0.0, 0.0, 100.0, 200.0);
+
+Function size = functionFromMethod(Box.class.getMethod("getSize", (Class&lt;?&gt;[]) null));
+assertEquals(20000.0, size.apply(box));
+
+Function contains = functionFromMethod(Box.class.getMethod("contains", double.class, double.class));
+assertTrue((Boolean) contains.apply(box, 40.0, 40.0));
+</pre>
+
+<h3>funcito style</h3>
+<p>
+Using <code>Functions.functionFromMethod(...)</code> drastically reduces boilerplate code.
+If you want to get rid of filling in Method names and parameter types there is an even more
+convenient mechanism available: contruction functions from methods in funcito style!
+</p>
+<p>
+<a href="http://code.google.com/p/funcito/">Funcito</a> is a little framework that focusses on the construction of function instances for functional  
+programming frameworks like Functional Java, Guava and Jedi-core.
+
+The resulting user code is very concise and clean, thus I have included function construction using the funcito idiom into fun4j. 
+
+The following example shows how the functions <code>size</code> and <code>contains</code> from the previous section 
+can be constructed using the fun4j funcito style syntax:
+</p>
+<pre>
+import static org.fun4j.Functions.callsTo;
+import static org.fun4j.Functions.functionFor;
+
+size = functionFor(callsTo(Box.class).getSize());
+assertEquals(20000.0, size.apply(box));
+
+// the 0.0 arguments don't represent actual values they just serve as placeholders for a double value:
+contains = functionFor(callsTo(Box.class).contains(0.0, 0.0));
+assertTrue((Boolean) contains.apply(box, 40.0, 40.0));        
+</pre>
+
+<p>
+The cool thing about this idea is that <code>callsTo(Box.class)</code> generates a mock instance that 
+allows to write the candidate method exactly as any other method call. 
+Thus it's type safe at compile time and IDE code completion is available. 
+
+The only disadvantage: due to limitation of the CGLIB codegenerator this mechanism does not work for static methods.
+</p>
+
+<h3>create functions from lambda terms</h3>
+<p>
+Both <code>Functions.functionFromMethod</code> and <code>Functions.functionFor</code> allow to create functions
+based on existing Java methods.
+They do not provide a mechanism to write new functions from scratch.
+</p>
+<p>
+In order to write new functions from scratch fun4j provides a way to define functions as lambda-terms in classic Lisp-syntax.
+Here is a short example that demonstrates the basic idea:
+</p>
+<pre>
+import static org.fun4j.Template.fn;
+
+Function add = fn("(lambda (x y) (+ x y))");
+assertEquals(16, add.apply(9,7));
+</pre>
+<p>
+Obviuosly it's much more concise to define the function <code>add</code> in this way then by using the 
+notorious Java anonymous inner class syntax. 
+Please follow <a href="tutorial-java-lisp.html">this link to read a more in depth tutorial on using Lisp/Scheme in fun4j</a>.
+</p>
+
+
+
+<h2>The fun4j Collection API</h2>
+<p>
+Now that we know how to construct Functional objects we want to know how fun4j 
+can help us to use them in Java code.
+</p>
+<p>
+Using Function can be very useful when dealing with Collections. Let's have a look at some examples.
+First we define a Collection of Integers <code>[1, 2, 3, 4]</code> and a Function pow2 that computes the square of an Integer.
+</p>
+<p>
+Now we want to apply this function to each element in the collection.
+
+A typical Java solution would explicitely iterate over the collection and collect the results of the function applications into a new Collection.
+
+With fun4j we do this with a single statement: <code>fun4j.map(pow2, col);</code>
+</p>
+
+<pre>
+import static org.fun4j.Collections.asCollection;
+import static org.fun4j.Collections.map;
+
+// construct a collection from a set of arguments
+Collection&lt;Integer&gt; col = asCollection(1, 2, 3, 4);
+
+// define powers2 function: f(x) => x*x
+Function pow2 = new Function(){
+    @Override
+    public Object apply(Object... args) {
+        return (Integer)args[0] * (Integer)args[0];
+    }
+};
+
+// map applies a function to all elements of a collection
+Collection&lt;Integer&gt; result = map(pow2, col);
+
+assertEquals("[1, 4, 9, 16]", result.toString());
+</pre>
+
+<p>
+Here you can see how <code>map</code> is implemented:
+</p>
+<pre>
+public static &lt;E, F&gt; Collection&lt;F&gt; map(Function fun, Collection&lt;E&gt; col) {
+    Collection&lt;F&gt; result = new ArrayList&lt;F&gt;(col.size());
+    for (E el : col) {
+        result.add((F)fun.apply(el));
+    }
+    return result;
+}
+</pre>
+
+
+<p>
+Functional languages feel at home with <b>higher order functions</b> like map, 
+that take other functions as arguments and compose complex computations from simple functions.
+</p>
+<p>
+Here is another example:
+</p>
+<pre>
+import org.fun4j.Predicate;
+import static org.fun4j.Collections.filter;
+
+// define a predicate that returns true for even numbers
+Predicate even = new Predicate() {
+    @Override
+    public Boolean apply(Object... args) {
+        Integer i = (Integer) args[0];
+        return (i % 2 == 0); 
+    }
+};
+
+// compute pow2 for all even numbers in col
+result = map(pow2, filter(even, col));
+assertEquals("[4, 16]", result.toString());
+</pre>
+
+<p>
+Here we are computing the squares for all even numbers in our collection.
+The method <code>filter</code> returns a Collection of all elements 
+of the input Collection that match the filter predicate.
+</p>
+
+<p>
+It might be noteworthy here that <code>Predicate</code> is a covariant extension of 
+the <code>Function</code> interface. A Predicate must always return a Boolean value.
+</p>
+<pre>
+public interface Predicate extends Function {
+
+    @Override
+    <b>Boolean</b> apply(Object... args);
+         
+}
+</pre>
+<p>
+This works thanks to Java's support for covariant return types.
+For details have a look at <code>org.fun4j.compiler.Expression.compile(...)</code> 
+where a special bridge method is generated to delegate to the covariant method.
+</p>
+
+<p>
+Fun4j also provides classic higher order functions like <code>foldleft</code> and <code>foldright</code>.
+Here comes an example where <code>foldright</code> is used to sum up all elements of a Collection by sequentially 
+adding each element of the Collection to an accumulator, which is initialized with 0:
+</p>
+<pre>
+import static org.fun4j.Collections.foldright;
+
+Collection&lt;Integer&gt; col = asCollection(1 , 2, 3, 4, 5, 6, 7, 8, 9, 10);
+Function add = new Function() {
+    public Object apply(Object... args) {
+        return (Integer) args[0] + (Integer) args[1];
+    }
+};
+<b>Integer sum = foldright(add, 0, col);</b>
+assertEquals(new Integer(55), sum);
+</pre>
+
+<p>
+After working through these examples you might think: "Ok, this looks nice. 
+BUT writing simple operations like an addition function as an anonymous inner class is not an elegent solution...".
+</p>
+<p>
+Yes, that a valid point. The fun4j answer to this issue is to either re-use existing Java methods by wrapping them to functions using 
+<code>Functions.functionFromMethod</code> or <code>Functions.functionFor</code> or to 
+write functions in traditional Lisp / Scheme Syntax.
+<a href="tutorial-java-lisp.html">follow this link to learn more more about this approach.</a>
+</p>
+<h2>Some advanced examples</h2>
+<p>
+In this section I'm going to present some more advanced examples to demonstrate how typical problems can be solved
+using fun4j. 
+The examples are based on examples from the <a href="http://functionaljava.org/examples/1.5/">Functional Java</a> site.
+So these examples also allow you to directly compare the look and feel of both fun4j and Functional Java.
+</p>
+<h3>Collections.exists</h3>
+<p>
+Checks for the existence of a String that has all lower case characters.
+</p>
+<pre>
+import static org.fun4j.Collections.asCollection;
+import static org.fun4j.Functions.functionFromMethod;
+import static org.fun4j.Template.define;
+
+Collection&lt;String&gt; col = asCollection("Hello", "There", "what", "DAY", "iS", "iT");
+final Predicate isLowerCase = (Predicate) functionFromMethod(Character.class.getMethod("isLowerCase", char.class));
+define("isLowerCase", isLowerCase);
+// 1. define function in Java Syntax:
+assertTrue(
+    Collections.exists(new Predicate() {
+        public Boolean apply(Object... args) {
+            return Collections.forAll(isLowerCase, Collections.fromString((String) args[0]));
+        }
+    }, col)
+);
+
+// 2. define function in LISP Syntax:    
+assertTrue(
+    Collections.exists(predicate("(lambda (str) (Collections.forAll isLowerCase (Collections.fromString str) ))"), col)
+);    
+</pre>
+
+<h3>Collections.filter</h3>
+<p>
+Filters all elements from a Collection that fulfill a certain criteria. 
+In this case, we use the even predicate to select only the even numbers from a list.
+</p>
+<pre>
+import static org.fun4j.Collections.*;
+
+Collection&lt;Integer&gt; col = asCollection(97, 44, 67, 3, 22, 90, 1, 77, 98, 1078, 6, 64, 6, 79, 42);
+Collection<&lt;Integer&gt; result = filter(predicate("(lambda (n) (zero? (% n 2)))"), col);
+System.out.println(result);
+</pre>
+
+<h3>Collections.foldleft</h3>
+<p>
+Reduces the list applying a function per element. 
+In this case, the fold sums the elements with a starting value of 0. 
+</p>
+<pre>
+Collection&lt;Integer&gt; col = asCollection(97, 44, 67, 3, 22, 90, 1, 77, 98, 1078, 6, 64, 6, 79, 42);
+Integer result = foldleft(fn("(lambda (i j) (+ i j))"), 0, col);
+assertEquals(1774, result);
+</pre>
+
+<h3>Collections.forall</h3>
+<p>
+Checks that all Strings in a colletcion have only lower case characters. 
+In this case, the check fails because of the case of "There".
+</p>
+<pre>
+Collection&lt;String&gt; col = asCollection("hello", "There", "what", "day", "is", "it");
+final Predicate isLowerCase = (Predicate) functionFromMethod(Character.class.getMethod("isLowerCase", char.class));
+define("isLowerCase", isLowerCase);
+       
+// 1. define function in Java Syntax:
+assertFalse(
+    Collections.forAll(new Predicate() {
+        public Boolean apply(Object... args) {
+            return Collections.forAll(isLowerCase, Collections.fromString((String) args[0]));
+        }
+    }, col)
+);
+
+// 2. define function in LISP Syntax:
+assertFalse(
+    Collections.forAll(predicate("(lambda (str) (Collections.forAll isLowerCase (Collections.fromString str) ))"), col)
+);
+</pre>
+
+<h3>Collections.map</h3>
+<p>
+Maps a function across a list of integers. 
+This example adds 42 to each element of the list to produce a new list.
+</p>
+<pre>
+Collection&lt;Integer&gt; ints = asCollection(1, 2, 3);
+Collection&lt;Integer&gt; actual = Collections.map(fn("(lambda (i) (+ i 42))"), ints);
+assertEquals(asCollection(43, 44, 45), actual);
+</pre>
+
+<h3>Collections.sort</h3>
+<p>
+Sorts the given list:
+</p>
+<pre>
+Predicate intOrd = predicate("(lambda (x y) (> x y))");
+List<Integer> list = (List<Integer>) asCollection(97, 44, 67, 3, 22, 90, 1, 77, 98, 1078, 6, 64, 6, 79, 42);
+
+assertEquals(asCollection(1, 3, 6, 6, 22, 42, 44, 64, 67, 77, 79, 90, 97, 98, 1078), sort(list,intOrd));
+// sorting is NOT destructive !
+assertEquals(asCollection(97, 44, 67, 3, 22, 90, 1, 77, 98, 1078, 6, 64, 6, 79, 42), list);
+</pre>
+
+<h2>Partial Application</h2>
+
+<p>
+Partial application allows to bind data to the Variables of a Function. 
+Take for example the Function <code>add(m,n) => m + n</code>.  
+This function has two variables <code>m</code> and <code>n</code>. 
+The following code shows how to create a partial application by binding the values 17 to <code>m</code>:
+</p>
+<pre>
+// org.fun4j.Template is the central facade to the fun4J API. 
+// A default instance can be obtained by a static import:
+import static org.fun4j.Template.fun4j;
+
+Function add = new Function(){
+    public Object apply(Object... args) {
+        return (Integer) args[0] + (Integer) args[1];
+    }    
+};
+
+Function add17 = fun4j.bind(add, 17);
+assertEquals(23, add17.apply(6));
+</pre>
+<p>
+As you can see a partially applied function is again a function. 
+Thus it can be evaluated by calling the <code>apply()</code> method.
+</p>
+<p>
+This short example demonstrate that partial application can be used to preserve state and to 
+produce delayed computations that can be reached around in an application until it they are finally executed.
+</p>
+<p>
+How can this be useful? Consider the computation of VAT. It can be considered as a partial
+application of the function <code>mul(x,y) => x * y</code> to the actual tax-rate.
+The following code shows how this can be done with fun4j:
+</p>
+<pre>
+Function mul = new Function() {
+    protected Object apply(Object... args) {
+        Double x = (Double) args[0];
+        Double y = (Double) args[1];
+        return x * y;
+    }
+}; 
+
+Function germanVat = fun4j.bind(mul, 0.19); 
+Function britishVat = fun4j.bind(mul, 0.175);
+System.out.println(germanVat.apply(495.00));
+System.out.println(britishVat.apply(495.00));
+</pre>
+
+
+
+</div>
+</body>
+</html>

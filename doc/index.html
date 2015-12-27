@@ -1,0 +1,205 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<img src="lambda-100.png" />
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+<a href="lisp-doc.html">Lisp manual</a>
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+<h2>Bringing more fun to Java programming</h2>
+<p>
+fun4j brings functional programming to the JVM. It's a framework that integrates major concepts from functional programming into the Java Platform.
+</p>
+<p> 
+At its core there is a lambda-to-JVM bytecode compiler. Thanks to some optimization techniques like tail code optimization (TCO) the compiler produces code 
+that runs as fast as hand optimized Java code. The compiler uses the excellent Java bytecode assembler <a href="http://asm.ow2.org/">ASM</a>
+</p>
+<p>
+On top of this compiler you'll find a functional Java framework featuring higher order functions, partial application, support for Collections and Iterators, lambda terms, closures, etc.  
+</p>
+<p>
+In fun4j functions can be defined as anonymous classes. But it's also possible to define functions as lambda terms in classical LISP syntax. 
+This avoids all the Java boilerplate code and thus improves code readability.
+LISP and java functions are totally interoperable.
+</p>
+<p>
+As programming in fun4j is so much fun, I've also added a small LISP Read-Eval-Print-Loop (REPL) to interactively work with fun4j. 
+The REPL comes with a little libray of useful functions and some example programs. E.G. a Lispkit interpreter and a LISP-1.5 interpreter.
+</p>
+
+<h2>New with release 1.1</h2>
+<p>
+With release 1.1 the Java Lisp integration has much improved.
+It's now possible to parse Vectors directly in Lisp code with the common<code>[a, b, c]</code> or <code>[a b c]</code> Notation.
+</p>
+<p>
+There is now also a <code>Dot</code> operator that allow to access Java classes and instances directly from Lisp code.
+Please refer to the <a href="tutorial-java-lisp.html">Java Lisp Integration tutorial</a> for details.
+</p>
+
+<h2>Main features</h2>
+<p>
+<ul>
+<li><b>Functional Java libray</b>- allows you to use functions as first class citizens in your Java code.</li>
+<li><b>Lambda to Java Bytecode Compiler</b>- compiles lambda terms to efficient Java Bytecode</li>
+<li><b>Integration of Java and Lisp code </b>- mix Java and LISP as it fits to your programming task</li>
+<li><b>Lisp Interpreter / Compiler</b>- Allows to use the fun4j System interactively</li>
+<li><b>Lisp library</b>- brings useful LISP functions, benchmarks and example code</li>
+<li><b>Functional Assembler</b>- assembling Java Functions from AST-expression</li>
+</ul>
+</p>
+<p>
+<a href="tutorials.html">Please check out the tutorial page for introductions to the main features.</a>
+</p>
+
+<h2>Do we really need yet another functional library for Java ?</h2>
+<p>
+When presenting fun4j to the public I received some sceptical comments like:
+"There's already functionaljava, guava, lambdaj, op4j, commons functor, etc.: why a new functional library ?" or
+"We have Scala, Clojure, etc. Why yet another functional language for the JVM?".
+
+In the following section I try to explain how fun4j differs from those tools and why it is relevant.
+</p>
+<h3>No native support for closures in Java</h3>
+<p>
+Most functional frameworks for Java provide sophisticated means to deal with functions and to use them to filter and transform collections and other Java data structures. 
+But I don't know of any that provides a convenient way to define new functions from scratch.  
+This is caused by the limitaions of the Java language: as of now it does not provide native support for defining closures.
+</p>
+<p>   
+All functional libraries that I know of work around this limitation by defining functions as Function objects that implement an <code>apply</code> or <code>evaluate</code> method.
+Typically Function objects are then created in user code by defining anonymous inner classes, as in the following example:
+<pre>
+Function add = new Function() {
+    public Object apply(Object... args) {
+        return (Integer) args[0] + (Integer) args[1];
+    }
+};
+</pre>
+<p>
+This is quite verbose and just does not feel right.
+</p>
+<p>
+Fun4j is different, it allows to write functions as lambda-terms in classic Lisp syntax. 
+Thus the function <code>add</code> from the above example can be defined in fun4j as follows:
+</p>
+<pre>
+Function add = fn("(lambda (x y) (+ x y))");
+</pre>
+<p>
+This Lisp function is internally compiled into Java bytecode and is thus fully interoperable with "normal" Java code.
+The cool thing about this is that you can still stick to Java as your main language and use Lisp as an "embedded language" to define Function objects.
+</p>
+
+<h3>Not a new language</h3>
+<p>
+Scala, Clojure and the like are meant as fullblown standalone programming languages.
+They introduce new concepts like STM, agents, actors, etc.
+</p>
+<p>
+Fun4j does not aim at inventing a new language. 
+Even though fun4j comes with a full Lisp compiler and an interactive REPL, it's not intended as a completely independent language as Clojure or Scala.
+It simply provides a minimalistic functional subset of Lisp (comparable to the classic LISPKIT).
+You can use this Lisp implemenation as a standalone language.
+But you can also use it as an "embedded language" to conveniently define functions when using the Fun4j Java API.
+</p>
+
+<h3>Construction kit for implementing functional languages</h3>
+<p>
+At the core of fun4j there is an AST based functional assembler that allows to compose functional expressions (or lambda-terms) and compile them into Java Bytecode.
+(<a href="tutorial-assembler.html">Here's the tutorial covering the basics</a>.)
+This Assembler is agnostic of the actually implemented language. 
+So you could use it to write an implementation of your functional language of choice by simply adding a Parser.
+</p>
+<p>
+That said, fun4j is not limited to implement Lisp only. It could be used to implement other functional languages as well.
+</p>
+
+<h2>Project info</h2>
+<p>
+ <a href="http://sourceforge.net/projects/fun4j/files">
+                                                Download fun4j files</a>
+
+</p>
+<p>
+<a href="http://sourceforge.net/projects/fun4j/">
+                                                Project details and discussion</a>
+</p>
+
+<p>
+<a href="http://sourceforge.net/apps/wordpress/fun4j/">Our blog</a>
+</p>
+
+<h2> Info for Developers</h2>
+<h3>Join this project:</h3>
+<p>
+To join this project, please contact the project administrators of this project, as shown on the
+<a href="http://sourceforge.net/projects/fun4j/">
+        project summary page</a>.
+</p>
+
+<h3>
+        Get the source code:
+</h3>
+<p>
+        Source code for this project may be available as
+        <a href="http://sourceforge.net/projects/fun4j/files">
+                downloads
+        </a>
+        or through one of the SCM repositories used by the project, as accessible from the
+        <a href="http://sourceforge.net/projects/fun4j/develop">
+                project develop page</a>.
+</p>
+
+<h3>Continuous_Integration</h3>
+<p>Continuous Integration services are generously provided by 
+<a href="http://www.cloudbees.com/" rel="nofollow">CloudBees</a> 
+through their free FOSS program.  
+You may find our nightly builds, including unit test coverage reports on 
+<a href="https://fun4j.ci.cloudbees.com" rel="nofollow">our CI Server page</a> 
+at their site. </p>
+
+<p style="border-top: 1px solid #9999cc;">
+</p>
+<p><b>Powered by: </b>
+</p>
+<p align="center">
+<a href="http://sourceforge.net/"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=251605&amp;type=13" border="0" alt="SourceForge.net" align="middle"></a>
+
+<a href="http://asm.ow2.org/"><img alt="powered by ASM" src="http://asm.ow2.org/images/poweredbyasm.gif" border="0" align="middle"></a>
+
+<a href="http://www.junit.org"><img src="junit.jpg" width="85" height="31" border="0" align="middle"></a>
+
+<a href="http://www.eclemma.org/"><img src="eclemma.gif" width="42" height="31" border="0" align="middle"></a>
+
+<a href="http://www.eclipse.org/"><img src="eclipse.jpg" width="69" height="31" border="0" align="middle"></a>
+
+<a href="http://www.cloudbees.com/"><img src="http://www.cloudbees.com/sites/default/files/Button-Built-on-CB-1.png" border="0" align="middle"></a> 
+
+
+</p>
+</div>
+</body>
+</html>

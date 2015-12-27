@@ -1,0 +1,116 @@
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" href="style.css" type="text/css">
+  <title>fun4j - functional programming for the JVM</title>
+</head>
+<body >
+
+<div style="text-align:left; padding:5px; float: left;" >
+<a href="index.html" style=""><img src="lambda-100.png" border="0"/></a>
+<p>
+<br>
+</p>
+<p>
+<a href="install.html">install</a>
+</p>
+<p>
+<a href="tutorials.html">tutorials</a>
+</p>
+<p>
+ - <a href="tutorial-api.html">Java API</a>
+</p>
+<p>
+ - <a href="tutorial-java-lisp.html">Java + LISP</a>
+</p>
+<p>
+ - <a href="tutorial-lisp.html">Lisp Repl</a>
+</p>
+<p>
+ - <a href="tutorial-assembler.html">Assembler</a>
+</p>
+<p>
+<a href="javadocs/index.html">Javadoc</a>
+</p>
+<p>
+Lisp manual
+</p>
+</div>
+
+<div style="text-align:left; border-left:1px solid #9999cc; padding:5px; width:904px; position:absolute; top:20px; left:115px;">
+<h1> fun4j - functional programming for the JVM</h1>
+
+
+
+<h2>Reference of Lisp functions and special forms</h2>
+
+<table border="0" cellpadding="5" cellspacing="0" >
+<tr style="background-color:F1F1F1;"><td><b>Name</b></td><td><b>Description</b></td></tr>
+
+<tr><td> +</td><td><code>(+ a1 a2 ... an)</code> computes the sum of a1 + a2 + ... + an.</td></tr>
+<tr><td> add1</td><td><code>(add1 m)</code> computes m + 1. m an n must be Integers or BigIntegers</td></tr>
+<tr><td> and</td><td><code>(and a b)</code> returns true if both a and b return true, else false. a and b must return true or false.</td></tr>
+<tr><td> atom?</td><td><code>(atom? x)</code> returns false if x is a Cons Object or null. True for Strings, Numbers and compiled Functions.</td></tr>
+<tr><td> bigints</td><td><code>(bigints true)</code> advices the compiler to generate BigInteger code for all arithmetic operations. (bigints false)</code> advices the compiler to generate Integer code for all arithmetic operations. </td></tr>
+<tr><td> car</td><td><code>(car (cons x xs))</code> returns x, where (cons x xs) returns a Cons Object with head x and tail xs.</td></tr>
+<tr><td> cdr</td><td><code>(cdr (cons x xs))</code> returns xs, where (cons x xs) is a Cons Object with head x and tail xs.</td></tr>
+<tr><td> caar</td><td><code>(caar x)</code> is equivalent to <code>(car (car x))</code>.</td></tr>
+<tr><td> cadr</td><td><code>(cadr x)</code> is equivalent to <code>(car (cdr x))</code>.</td></tr>
+<tr><td> cdar</td><td><code>(cdar x)</code> is equivalent to <code>(cdr (car x))</code>.</td></tr>
+<tr><td> cddr</td><td><code>(cddr x)</code> is equivalent to <code>(cdr (cdr x))</code>.</td></tr>
+<tr><td> compile</td><td><code>(compile x)</code> explicitely compiles the expression x</td></tr>
+<tr><td> compiled?</td><td><code>(compiled? x)</code> returns true if x is a compiled function, else false</td></tr>
+<tr><td> cons</td><td><code>(cons x y)</code> returns a new Cons object with head <code>x</code> and tail <code>y</code>.</td></tr>
+<tr><td> ::</td><td>equivalent to <code>cons</code></td></tr>
+<tr><td> debug-enable</td><td><code>(debug-enable true)</code> will advice the compiler to write .lsp files for AST-Pseudocode and .class files
+for the generated Java bytecode. It will also trigger the generation of JVM debugging bytecode.
+</td></tr>
+<tr><td> define</td><td><code>(define symbol value)</code> binds <code>symbol</code> to <code>value</code> in the global lisp environment.</td></tr>
+<tr><td> /</td><td><code>(/ m n)</code> divides m by n. m an n must be Integers or BigIntegers.</td></tr>
+<tr><td> .</td><td><code>(. class-or-instance field-or-method args*)</code>the Dot operator  allows to access Java class and instances.</td></tr>
+<tr><td> eq</td><td><code>(eq a b)</code> returns true if a and b are equal, else false.</td></tr>
+<tr><td> explode</td><td><code>(explode symbol)</code> explodes a string or symbol to a list of characters.</td></tr>
+<tr><td> &gt;</td><td><code>(&gt; m n)</code> returns true if m is greater than n. m an n must be Integers or BigIntegers</td></tr>
+<tr><td> &gt;=</td><td><code>(&gt;= m n)</code> returns true if m is greater or than or equal to n. m an n must be Integers or BigIntegers</td></tr>
+<tr><td> hd</td><td>equivalent to car.</td></tr>
+<tr><td> if</td><td><code>(if test thenDo elseDo)</code> evaluates to <code>thenDo</code> if <code>test</code> evaluates to true, else <code>elseDo</code> is returned. </td></tr>
+<tr><td> implode</td><td><code>(implode list)</code> forms a new symbol from <code>list</code> a list of single characters.</td></tr>
+<tr><td> javafunction</td><td>If <code>qualified.classname</code> represents a Java class implementing the <code>org.fun4j.Function</code> interface then 
+							  <code>(javafunction qualified.classname)</code> returns an instance of that class, that is a function object. This function can be used as any other Lisp function.</td></tr>
+<tr><td> lambda</td><td><code>(lambda (list of vars) body)</code> is a lisp special. it evaluates to itself. It represents an anonymous function.</td></tr>
+<tr><td> \</td><td><code>(\ (list of vars) body)</code> short form for lambda.</td></tr>
+
+<tr><td> &lt;</td><td><code>(&lt; m n)</code> returns true if m is smaller than n. m an n must be Integers or BigIntegers</td></tr>
+<tr><td> &lt;=</td><td><code>(&lt;= m n)</code> returns true if m is smaller or than or equal to n. m an n must be Integers or BigIntegers</td></tr>
+
+<tr><td> list?</td><td><code>(list? x)</code> returns true if x is null or a cons-expression, else false.</td></tr>
+<tr><td> load</td><td><code>(load filename)</code> loads a lisp file named <code>filename</code> and evaluates all lisp expressions in that file.</td></tr>
+<tr><td> lookup</td><td><code>(lookup symbol)</code> looks up <code>symbol</code> in the global environment. </td></tr>
+<tr><td> *</td><td><code>(* a1 a2 ... an)</code> computes the product a1 * a2 * ... * an.</td></tr>
+<tr><td> not</td><td><code>(not a)</code> returns true if <code>a</code> evaluates to false, else false.</td></tr>
+<tr><td> null?</td><td><code>(null? x)</code> returns true if x is null, else false</td></tr>
+<tr><td> number?</td><td><code>(number? x)</code> returns true if x is number, else false.</td></tr>
+<tr><td> =</td><td><code>(= m n)</code> returns true if m equals n. m an n must be Integers or BigIntegers.</td></tr>
+<tr><td> or</td><td><code>(or a b)</code> returns true if a or b evaluate to true, else false.</td></tr>
+<tr><td> prin</td><td><code>(prin x)</code> prints out x, without adding a linefeed.</td></tr>
+<tr><td> print</td><td><code>(print x)</code> prints out x, and adds a linefeed.</td></tr>
+<tr><td> printdepth</td><td><code>(printdepth n)</code> sets the list printdepth to <code>n</code></td></tr>
+<tr><td> printlength</td><td><code>(printlength n)</code> sets the list printlength to <code>n</code></td></tr>
+<tr><td> quote</td><td>quote is a special lisp form. It does not evaluate it's argument, but returns it as is. <code>(quote x)</code> returns x unevaluated. </td></tr>
+
+<tr><td> read</td><td><code>(read)</code> reads a lisp expresion from standard in.</td></tr>
+<tr><td> %</td><td><code>(% m n)</code> computes the remainder of the integer division of <code>(/ m n)</code>.</td></tr>
+<tr><td> staticfunction</td><td>This function can be best explained by an example: 
+<code>(staticfunction 'java.lang.System 'getProperties "()Ljava/util/Properties;" )</code> 
+this returns a function wrapping a call to <code>System.getProperties()</code>.
+</td></tr>
+<tr><td> -</td><td><code>(- m n)</code> computes the difference of m and n. m an n must be Integers or BigIntegers.</td></tr>
+<tr><td> sub1</td><td><code>(sub1 m)</code> computes <code>m - 1</code>. m must be an Integer or a BigInteger.</td></tr>
+<tr><td> symbol?</td><td><code>(symbol? x)</code> returns true if x is a symbol, else false.</td></tr>
+<tr><td> tl</td><td> equivalent to <code>cdr</code>.</td></tr>
+</table>
+
+
+</div>
+</body>
+</html>
