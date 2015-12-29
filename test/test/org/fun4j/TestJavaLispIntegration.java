@@ -1,9 +1,6 @@
 package test.org.fun4j;
 
-import static org.fun4j.Collections.asCollection;
-import static org.fun4j.Collections.asCons;
-import static org.fun4j.Collections.foldright;
-import static org.fun4j.Collections.map;
+import static org.fun4j.Collections.*;
 import static org.fun4j.Functions.functionFromMethod;
 import static org.fun4j.Template.define;
 import static org.fun4j.Template.eval;
@@ -68,9 +65,8 @@ public class TestJavaLispIntegration extends TestCase {
         define("map", map);    
         //useBigInts(true);
         eval("(define squared (lambda (n) (* n n)))");
-        Object result = eval("(map squared '(1 2 3 4))");
-        
-        assertEquals("(1 4 9 16)", result.toString());
+        Cons result = (Cons) eval("(map squared '(1 2 3 4))");
+        assertEquals(asCollection(1, 4, 9, 16).toString(), fromCons(result).toString());
     }
     
     public void testLispFunctionWithCollection() throws CompilationException {
@@ -112,76 +108,77 @@ public class TestJavaLispIntegration extends TestCase {
         
         assertEquals("[1, 4, 9, 16]", result.toString());
     }
-    
+
+//    @Ignore
 //    public void testJavaAccess() throws CompilationException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
 //        Box rect = new Box(0.0,0.0,10.0,10.0);
 //        define("rect", rect);
-//        
+//
 //        assertEquals(rect.getSize(), eval("(. rect 'getSize)"));
-//        
+//
 //        assertTrue((Boolean)eval("(. rect 'contains 5.0 6.0)"));
-//        
+//
 //        assertFalse((Boolean)eval("(. rect 'contains 23.0 13.0)"));
-//        
+//
 //        Box rect1 = new Box(0.0,0.0,5.0,5.0);
 //        Box rect2 = new Box(0.0,0.0,9.0,9.0);
-//        
+//
 //        Collection<Box> col = asCollection(rect, rect1, rect2);
 //        Function getSize = fn("(lambda (rec) (. rec 'getSize))");
 //        Collection<?> result = map(getSize, col);
 //        System.out.println(asCons(result));
-//        
-//        Function add = fn("(lambda (x y) (+ x y))");        
+//
+//        Function add = fn("(lambda (x y) (+ x y))");
 //        assertEquals(rect.getSize() + rect1.getSize() + rect2.getSize(), foldright(add, 0.0, result) );
-//           
+//
 //        result = map(fn("(lambda (rec) (. rec 'getSize))"), col);
-//        System.out.println(asCons(result));    
-//        
+//        System.out.println(asCons(result));
+//
 //        Method method = Box.class.getMethod("getSize", (Class<?>[]) null);
 //        Function funGetSize = functionFromMethod(method);
 //        funGetSize.apply(rect);
-//        
+//
 //        System.out.println(funGetSize.apply(rect));
-//        
+//
 //        System.out.println(asCons(result));
-//        
+//
 //        System.out.println(eval("(. rect 'getHeight)"));
-//        
+//
 //        System.out.println(eval("(. rect 'height)"));
-//       
+//
 //        System.out.println(eval("(. 'Class 'getName )"));
-//        
-//        System.out.println(eval("(. 'System 'getProperty \"java.vm.version\")")); 
+//
+//        System.out.println(eval("(. 'System 'getProperty \"java.vm.version\")"));
 //        System.out.println(eval("(. 'System 'getProperties )"));
-//       
+//
 //        System.out.println(eval("(. 'Class 'getMethods )"));
-//        
+//
 //        System.out.println(eval("(. 'Math 'PI)"));
-//       
-//        System.out.println(eval("(. 'Math 'random )")); 
-//        
+//
+//        System.out.println(eval("(. 'Math 'random )"));
+//
 //        System.out.println(eval("(. 'test.org.fun4j.Box 'CONSTANT )"));
-//        
-//        
+//
+//
 //        System.out.println(eval("(. rect 'height)"));
-//        
+//
 //        define("col", result);
 //        System.out.println(eval("(. col 'size)"));
-//                
-//        
+//
+//
 //        define("col", eval("[[1 2 3][1 2][3 4 5][8 9]]"));
-//        System.out.println(eval("(. col 'size)"));   
-//        System.out.println(eval("(. col 'lastElement)")); 
-//        
-//        System.out.println(eval("(. [[a b c][d e][f g h][i j]] 'size)"));        
+//        System.out.println(eval("(. col 'size)"));
+//        System.out.println(eval("(. col 'lastElement)"));
+//
+//        System.out.println(eval("(. [[a b c][d e][f g h][i j]] 'size)"));
 //        System.out.println(eval("(. [1 2 3 4] 'lastElement)"));
 //    }
-//    
+
     public void testDottedPairs() throws CompilationException {
     	
     	assertEquals("B", ((Cons)Parser.parse("(A . B)")).getTl() );
     	
-    	assertEquals("END", eval("(last '(1 (A . B) 2 3 4 END))"));	
+    	assertEquals("END", eval("(last '(1 (A . B) 2 3 4 END))"));
     }
     
     public void testParser() throws CompilationException {

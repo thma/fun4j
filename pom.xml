@@ -30,9 +30,24 @@
 		</dependency>
 	</dependencies>
 	<build>
-
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
 
 		<sourceDirectory>${basedir}/src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/scheme</directory>
+            </resource>
+        </resources>
 		<testSourceDirectory>${basedir}/test</testSourceDirectory>
 		<outputDirectory>${basedir}/target/classes</outputDirectory>
 		<testOutputDirectory>${basedir}/target/test-classes</testOutputDirectory>

@@ -22,6 +22,7 @@ import org.fun4j.compiler.expressions.Mul;
 import org.fun4j.compiler.expressions.Sub1;
 import org.fun4j.compiler.expressions.Var;
 import org.fun4j.compiler.expressions.Zerop;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -124,69 +125,45 @@ public class Letrec {
 	}
 
 	@Test
-	public void testLetrecWithLambdas() throws CompilationException,
+	public void testLambdaLifting() throws CompilationException,
 			IOException {
 		setUseBigInts(false);
-		// Expression body = new Apply(new Var(1, "odd?"), new CstInt(37), new)
 
-		// // f(x) => factorial(x)
-		// Expression expFac =
-		// new If(new Zerop(new Var(0)), new CstInt(1), new Mul(new Var(0), new
-		// Recurse(new Sub1(new Var(0)))));
-
-		// f(x) => factorial(x)
-		Expression expFac1 = new If(new Zerop(new Var(0, "n")), new CstInt(1),
-				new Mul(new Var(0), new Apply(new Var(1, "fn"), new Sub1(
-						new Var(0, "n")), new Var(1, "fn"))));
-
-		BaseFunction funFac1 = (BaseFunction) compile(expFac1, "fac1");
-		// new Compiler().injectTracing(funFac1);
-
-		System.out.println(funFac1);
-
-		System.out.println(funFac1.apply(7, funFac1));
-
-//		 (letrec
-//		 ((even? (lambda (n even? odd?) (if (zero? n) true (odd? (sub1 n)
-//		 even? odd?))))
-//		 (odd? (lambda (n even? odd?) (if (zero? n) false (even? (sub1 n)
-//		 even? odd?)))))
-//		 (odd? 37 even? odd?))
-		Expression expEven = new If(new Zerop(new Var(0, "n")), new CstTrue(),
-				new Apply(new Var(2, "odd?"), new Sub1(new Var(0, "n")),
-						new Var(1, "even?"), new Var(2, "odd?")));
-		BaseFunction funEven = compile(expEven, "even");
-
-		Expression expOdd = new If(new Zerop(new Var(0, "n")), new CstFalse(),
-				new Apply(new Var(1, "even?"), new Sub1(new Var(0, "n")),
-						new Var(1, "even?"), new Var(2, "odd?")));
-		BaseFunction funOdd = compile(expOdd, "odd");
-		System.out.println(funOdd.apply(139, funEven, funOdd));
-
-	
-		
 		try {
-			System.out.println(Template.eval("even?"));
+			System.out.println(Template.eval("ev?"));
 			fail();
 		} catch (RuntimeException e) {
 			// undefined symbol expected
 		}	
 		
 		try {
-			System.out.println(Template.eval("odd?"));
+			System.out.println(Template.eval("od?"));
 			fail();
 		} catch (RuntimeException e) {
 			// undefined Symbol expected
 		}
 		
 		String liftedLambdas= 
-			"((lambda (even? odd?) (odd? 205 even? odd?))" + 
-					"(lambda (n even? odd?) (if (zero? n) true (odd? (sub1 n) even? odd?)))" +
-					"(lambda (n even? odd?) (if (zero? n) false (even? (sub1 n) even? odd?))))";
+			"((lambda (ev? od?) (od? 207 ev? od?))" +
+					"(lambda (n ev? od?) (if (zero? n) true (od? (sub1 n) ev? od?)))" +
+					"(lambda (n ev? od?) (if (zero? n) false (ev? (sub1 n) ev? od?))))";
 		
 		assertTrue((Boolean) Template.eval(liftedLambdas));
-		
-		
-
 	}
+
+
+    @Test
+    @Ignore
+    public void testLetrecWithLambdas() throws CompilationException,
+            IOException {
+        setUseBigInts(false);
+
+        String letrecTerm =
+            "(letrec\n" +
+                "((ev? (lambda (n) (if (zero? n) true (od? (sub1 n)))))\n" +
+                " (od? (lambda (n) (if (zero? n) false (ev? (sub1 n))))))\n" +
+                "(od? 37))";
+
+        assertTrue((Boolean) Template.eval(letrecTerm));
+    }
 }

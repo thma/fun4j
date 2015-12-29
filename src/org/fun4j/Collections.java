@@ -1,10 +1,6 @@
 package org.fun4j;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This Class contains all methods of the Fun4j Collection API.
@@ -19,12 +15,8 @@ public class Collections {
      * @return the resulting Collection
      */
     @SafeVarargs
-	public static <E> Collection<E> asCollection(E... elements) {
-        Collection<E> result = new ArrayList<E>();
-        for (E el : elements) {
-            result.add(el);
-        }
-        return result;
+    public static <E> Collection<E> asCollection(E... elements) {
+        return Arrays.asList(elements);
     }
 
     /**
@@ -177,7 +169,7 @@ public class Collections {
     /**
      * this utility method creates a Collection from a String
      * 
-     * @param string the input String
+     * @param input the input String
      * @return the resulting Collection
      */
     public static Collection<Character> fromString(String input) {
@@ -290,7 +282,7 @@ public class Collections {
      * wraps a Predicate as a {@link Comparator}.
      * the user is responsible to maintain that the predicate represents
      * a total ordering as required by the {@link Comparator} interface.
-     * @param the ordering Predicate (e.g. < or >)
+     * @param pred the ordering Predicate (e.g. < or >)
      * @return a Comparator wrapping the input Predicate
      */
     public static <T> Comparator<T> asComparator(final Predicate pred) {        

@@ -52,14 +52,14 @@
   	nil
   	(if (null? (cdr lst)) 
   	  (car lst)
-  	  (last (cdr lst))))
+  	  (last (cdr lst)))))
 
 ;; The dot operator '.' allows to invoke java methods as in (. 'java.lang.Math 'random)
 ;; It can also be used to access fields. Works for instances and classes !
 ;; define a random function based on java.lang.Math.random()
-(define (rnd) (. 'Math 'random)))
+;; (define (rnd) (. 'Math 'random))
 ;; define Java based hash function
-;;(define hash (javafunction 'org.fun4j.functions.Hash))  
+;;(define hash (javafunction 'org.fun4j.functions.Hash))
 
 ;;; set operations
 (define (member-boolean x list) 
@@ -205,7 +205,7 @@
         (cons (car (cdar binding)) (extractValues (cdr binding)))))    
  
 ;; let macro example: 
-;; (let ((a 1)(b 2)) (+ b a)) ==> ((lambda (a b) (+ b a)) 1 2)
+;; (let ((a 1)(b 2)) (+ b a)) ==> ((lambda (a b) (+ b a)) 1 2) ==> 3
 (define let (macro (binding body)
   `((lambda ,(extractVars binding) ,body)
      ,@(extractValues binding)))) 
@@ -307,7 +307,7 @@
             (bb (abs (cadr a))))
          (if (zero? bb)
               aa
-              (gcd bb (% aa bb)))))))	
+              (gcd bb (% aa bb))))))
               
 ;; least common multiple              	  
 (define (lcm . a)
@@ -317,7 +317,7 @@
             (bb (abs (cadr a))))
          (if (or (zero? aa) (zero? bb))
              0
-             (abs (* (quotient aa (gcd aa bb)) bb)))))))   
+             (abs (* (quotient aa (gcd aa bb)) bb))))))
  
  ;; chars and strings
 (define (list->string charlist)

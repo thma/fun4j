@@ -156,9 +156,9 @@ public class TestTemplate extends TestCase {
     }
 
     public void testCollectionToCons() {
-        Collection<Integer> col = asCollection(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        Collection<Integer> col = asCollection(1, 2, 3);
         Cons ints = asCons(col);
-        assertEquals("(1 2 3 4 5 6 7 8 9 10)", ints.toString());
+        assertEquals("(1 2 3)", ints.toString());
 
         ints = asCons(null);
         assertNull(ints);
