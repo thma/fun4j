@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/thma/fun4j.svg)](https://travis-ci.org/thma/fun4j)
 # fun4j
 functional programming for the JVM
 
