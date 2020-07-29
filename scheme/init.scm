@@ -223,11 +223,18 @@
 ;;	((even? (lambda (n) (if (zero? n) true (odd? (sub1 n)))))
 ;;	 (odd? (lambda (n) (if (zero? n) false (even? (sub1 n))))))
 ;;	(odd? 37))
+;;(letrec ((even? (lambda (n) (if (zero? n) true (odd? (sub1 n))))) (odd? (lambda (n) (if (zero? n) false (even? (sub1 n)))))) (odd? 37))
+(define letrec-example '(letrec ((even? (lambda (n) (if (zero? n) true (odd? (sub1 n))))) (odd? (lambda (n) (if (zero? n) false (even? (sub1 n)))))) (odd? 37)))
+(define letrec-bindings (cadr letrec-example))
+(define letrec-body (caddr letrec-example))
 ;; macro expands to ==>
 ;;(let 
 ;;  ((even? (lambda (n even? odd?) (if (zero? n) true (odd? (sub1 n) even? odd?))))
 ;;   (odd? (lambda (n even? odd?) (if (zero? n) false (even? (sub1 n) even? odd?)))))
 ;;  (odd? 37 even? odd?))
+;;(let ((even? (lambda (n even? odd?) (if (zero? n) true (odd? (sub1 n) even? odd?)))) (odd? (lambda (n even? odd?) (if (zero? n) false (even? (sub1 n) even? odd?))))) (odd? 37 even? odd?))
+
+
 ;; and thus finally to ==>
 ;;((lambda (even? odd?) (odd? 37 even? odd?)) 
 ;;	(lambda (n even? odd?) (if (zero? n) true (odd? (sub1 n) even? odd?)))
@@ -248,31 +255,35 @@
 	term))
 
 (define (addParamsToBinding vars params) 
-	(append vars params))
+	(append params vars))
 	
-(define (addParamsToBody body vars)
-  (cond 
-    ((not (list? body)) body)
-	((member-boolean (car body) vars)
-	  (append (list (car body) (map (lambda (term) (addParamsToBody term vars)) (cdr body))) vars))
-	((list? (car body))
-	  (map (lambda (term) (addParamsToBody term vars)) body))
-	(else 
-	  (cons (car body) (map (lambda (term) (addParamsToBody term vars)) (cdr body))))))
+;;(define (addParamsToBody body vars)
+;;  (cond
+;;    ((not (list? body)) body)
+;;	((member-boolean (car body) vars)
+;;	  (append (list (car body) (map (lambda (term) (addParamsToBody term vars)) (cdr body))) vars))
+;;	((list? (car body))
+;;	  (map (lambda (term) (addParamsToBody term vars)) body))
+;;	(else
+;;	  (cons (car body) (map (lambda (term) (addParamsToBody term vars)) (cdr body))))))
 	  
 (define (addParamsToBody body vars)
   (if (not (list? body)) body
-  (if (member-boolean (car body) vars)
-	  (append (list (car body) (map (lambda (term) (addParamsToBody1 term vars)) (cdr body))) vars)
+  (if (member-boolean (first body) vars)
+	  (append (list (car body) (addParamsToBody1 (cdr body) vars)) vars)
   (if (list? (car body))
-	  (map (lambda (term) (addParamsToBody1 term vars)) body)
-	  (cons (car body) (map (lambda (term) (addParamsToBody1 term vars)) (cdr body)))))))	  
+	  (addParamsToBody1 body vars)
+	  (cons (car body) (addParamsToBody1 (cdr body) vars))))))
 
 (define (addParamsToBody1 body vars)
-  (addParamsToBody body vars))
-  
-(define (test a b) 
-  (map (lambda (n) (* n b)) a))  
+    (if (not (list? body))
+        body
+        (cons (addParamsToBody (car body) vars)
+              (addParamsToBody (cdr body) vars))))
+
+;; we still got problems with closures:
+(define (test a b)
+    (map (lambda (n) (* n b)) a))
 	  
 (define term '(lambda (n) (if (zero? n) true (odd? (sub1 n)))))
 (define params '(even? odd?))       
