@@ -33,7 +33,7 @@ li {
 h1 {
 	font-family: Verdana,sans-serif;
 	font-size: 28px;
-	color: 9999CC;
+	color: #9999CC;
 	vertical-align: middle;
 	margin: 10px 10px;
 	
@@ -43,21 +43,21 @@ h1 {
 h2 {
 	font-family: Verdana,sans-serif;
 	font-size: 18px;
-	color: 9999CC;
+	color: #9999CC;
 	margin: 10px 10px;
     }
     
 h3 {
 	font-family: Verdana,sans-serif;
 	font-size: 12px;
-	color: 9999CC;
+	color: #9999CC;
 	margin: 10px 10px;
 
 }
 h4 {
 	font-family: Verdana,sans-serif;
 	font-size: 11px;
-	color: 9999CC;
+	color: #9999CC;
 	margin: 10px 10px;
 
 }
@@ -65,6 +65,6 @@ pre {
 	padding:5px;
 	border: 1px solid #9999cc;
 	margin: 10px 10px;
-	background-color: F8F8F8;
+	background-color: #F8F8F8;
 }
 
